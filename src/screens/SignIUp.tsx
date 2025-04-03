@@ -12,13 +12,49 @@ import { Input } from '@components/Input'
 import { Button } from '@components/Button'
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
 import { useNavigation } from '@react-navigation/native'
+import { useForm, Controller } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+type FormDataProps = {
+  name: string
+  email: string
+  password: string
+  password_confirm: string
+}
+
+const signUpSchema = yup.object({
+  name: yup.string().required('Nome é obrigatório'),
+  email: yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
+  password: yup
+    .string()
+    .min(6, 'Senha precisa ter pelo menos 6 caracteres')
+    .required('Senha é obrigatória'),
+  password_confirm: yup
+    .string()
+    .required('Confirmação de senha é obrigatória')
+    .oneOf([yup.ref('password'), ''], 'A confirmação da senha nao confere'),
+})
 
 export function SignUp() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>()
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormDataProps>({
+    resolver: yupResolver(signUpSchema),
+  })
+
   function handleGoBack() {
     navigation.goBack()
   }
+
+  function handleSignUp(data: FormDataProps) {
+    console.log(data)
+  }
+
   return (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
@@ -46,15 +82,67 @@ export function SignUp() {
             <Heading color="$gray100" fontSize="$2xl">
               Crie sua conta
             </Heading>
-            <Input placeholder="Nome" />
-            <Input
-              placeholder="E-mail"
-              keyboardType="email-address"
-              autoCapitalize="none"
+
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  placeholder="Nome"
+                  onChangeText={onChange}
+                  value={value}
+                  errorMessage={errors.name?.message}
+                />
+              )}
             />
-            <Input placeholder="Senha" secureTextEntry />
-            <Input placeholder="Confirmar a Senha" secureTextEntry />
-            <Button title="Criar e acessar" />
+
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  placeholder="E-mail"
+                  onChangeText={onChange}
+                  value={value}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  errorMessage={errors.email?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  onChangeText={onChange}
+                  value={value}
+                  placeholder="Senha"
+                  secureTextEntry
+                  errorMessage={errors.password?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="password_confirm"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  onChangeText={onChange}
+                  value={value}
+                  placeholder="Confirmar a Senha"
+                  secureTextEntry
+                  errorMessage={errors.password_confirm?.message}
+                />
+              )}
+            />
+
+            <Button
+              title="Criar e acessar"
+              onPress={handleSubmit(handleSignUp)}
+            />
           </Center>
 
           <Button
