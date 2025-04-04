@@ -5,6 +5,7 @@ import {
   Text,
   Heading,
   ScrollView,
+  useToast,
 } from '@gluestack-ui/themed'
 import backgroundImg from '@assets/background.png'
 import Logo from '@assets/logo.svg'
@@ -15,6 +16,11 @@ import { useNavigation } from '@react-navigation/native'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { api } from '@services/api'
+import axios from 'axios'
+import { Alert } from 'react-native'
+import { AppError } from '@utils/AppError'
+import { ToastMessage } from '@components/ToastMessage'
 
 type FormDataProps = {
   name: string
@@ -38,6 +44,7 @@ const signUpSchema = yup.object({
 
 export function SignUp() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>()
+  const toast = useToast()
 
   const {
     control,
@@ -51,8 +58,29 @@ export function SignUp() {
     navigation.goBack()
   }
 
-  function handleSignUp(data: FormDataProps) {
-    console.log(data)
+  async function handleSignUp({ name, email, password }: FormDataProps) {
+    try {
+      const response = await api.post('/users', { name, email, password })
+      console.log(response.data)
+    } catch (err) {
+      const isAppError = err instanceof AppError
+
+      const title = isAppError
+        ? err.message
+        : 'Nao foi possivel criar uma conta, tente novamente mais tarde'
+
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            title={title}
+            action="error"
+            onClose={() => toast.close(id)}
+          />
+        ),
+      })
+    }
   }
 
   return (
