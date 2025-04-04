@@ -8,9 +8,12 @@ import {
 } from '@gluestack-ui/themed'
 import { ChevronRight } from 'lucide-react-native'
 import { TouchableOpacity, TouchableOpacityProps } from 'react-native'
-type Props = TouchableOpacityProps
+type Props = TouchableOpacityProps & {
+  name: string
+  description: string
+}
 
-export function ExerciseCard({ ...rest }: Props) {
+export function ExerciseCard({name, description, ...rest }: Props) {
   return (
     <TouchableOpacity {...rest}>
       <HStack
@@ -23,7 +26,7 @@ export function ExerciseCard({ ...rest }: Props) {
       >
         <Image
           source={{
-            uri: 'https://treinomestre.com.br/wp-content/uploads/2018/11/treino-peito-exercicios-peitoral-.jpg',
+            uri: "https://treinomestre.com.br/wp-content/uploads/2018/11/treino-peito-exercicios-peitoral-.jpg",
           }}
           alt="imagem do exercicio"
           w="$16"
@@ -34,14 +37,14 @@ export function ExerciseCard({ ...rest }: Props) {
         />
         <VStack flex={1}>
           <Heading fontSize="$lg" fontFamily="$heading" color="$white">
-            Peito
+            {name}
           </Heading>
           <Text fontSize="$sm" color="$gray700" mt="$1" numberOfLines={2}>
-            3 series x 12 reps
+            {description}
           </Text>
         </VStack>
         <Icon as={ChevronRight} color="$gray300" />
       </HStack>
     </TouchableOpacity>
-  )
+  );
 }

@@ -1,32 +1,31 @@
-import { ExerciseCard } from '@components/ExerciseCard'
-import { Group } from '@components/Group'
-import { HomeHeader } from '@components/Header'
-import { VStack, Text, HStack, Heading } from '@gluestack-ui/themed'
-import { useNavigation } from '@react-navigation/native'
-import { AppNavigatorRoutesProps } from '@routes/app.routes'
-import { useState } from 'react'
-import { FlatList } from 'react-native'
+import { ExerciseCard } from "@components/ExerciseCard";
+import { Group } from "@components/Group";
+import { HomeHeader } from "@components/Header";
+import { VStack, Text, HStack, Heading } from "@gluestack-ui/themed";
+import { useNavigation } from "@react-navigation/native";
+import { AppNavigatorRoutesProps } from "@routes/app.routes";
+import { useState } from "react";
+import { FlatList } from "react-native";
 
 export function Home() {
-  const navigation = useNavigation<AppNavigatorRoutesProps>()
+  const navigation = useNavigation<AppNavigatorRoutesProps>();
   const [exercises, setExercises] = useState([
-    'Resistência',
-    'Flexibilidade',
-    'Agilidade',
-    'Flexão',
-    ,
-  ])
+    "Resistência",
+    "Flexibilidade",
+    "Agilidade",
+    "Flexão",
+  ]);
   const [groups, setGroups] = useState([
-    'ombro',
-    'costas',
-    'peito',
-    'triceps',
-    'perna',
-  ])
-  const [groupSelected, setGroupSelected] = useState('costas')
+    "ombro",
+    "costas",
+    "peito",
+    "triceps",
+    "perna",
+  ]);
+  const [groupSelected, setGroupSelected] = useState("costas");
 
   function handleOpenExerciseDetails() {
-    navigation.navigate('exercise')
+    navigation.navigate("exercise");
   }
   return (
     <VStack flex={1}>
@@ -60,13 +59,17 @@ export function Home() {
         <FlatList
           data={exercises}
           keyExtractor={(item) => item}
-          renderItem={() => (
-            <ExerciseCard onPress={handleOpenExerciseDetails} />
+          renderItem={(item) => (
+            <ExerciseCard
+              name={item.item}
+              description="4 x 12"
+              onPress={handleOpenExerciseDetails}
+            />
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       </VStack>
     </VStack>
-  )
+  );
 }

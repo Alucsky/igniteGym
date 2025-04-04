@@ -6,45 +6,49 @@ import {
   Heading,
   ScrollView,
   useToast,
-} from '@gluestack-ui/themed'
-import backgroundImg from '@assets/background.png'
-import Logo from '@assets/logo.svg'
-import { Input } from '@components/Input'
-import { Button } from '@components/Button'
-import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
-import { useNavigation } from '@react-navigation/native'
-import { useForm, Controller } from 'react-hook-form'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { api } from '@services/api'
-import axios from 'axios'
-import { Alert } from 'react-native'
-import { AppError } from '@utils/AppError'
-import { ToastMessage } from '@components/ToastMessage'
+} from "@gluestack-ui/themed";
+import backgroundImg from "@assets/background.png";
+import Logo from "@assets/logo.svg";
+import { Input } from "@components/Input";
+import { Button } from "@components/Button";
+import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
+import { useNavigation } from "@react-navigation/native";
+import { useForm, Controller } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { api } from "@services/api";
+import axios from "axios";
+import { Alert } from "react-native";
+import { AppError } from "@utils/AppError";
+import { ToastMessage } from "@components/ToastMessage";
+import { useState } from "react";
+import { useAuth } from "@hooks/useAuth";
 
 type FormDataProps = {
-  name: string
-  email: string
-  password: string
-  password_confirm: string
-}
+  name: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+};
 
 const signUpSchema = yup.object({
-  name: yup.string().required('Nome é obrigatório'),
-  email: yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
+  name: yup.string().required("Nome é obrigatório"),
+  email: yup.string().email("E-mail inválido").required("E-mail é obrigatório"),
   password: yup
     .string()
-    .min(6, 'Senha precisa ter pelo menos 6 caracteres')
-    .required('Senha é obrigatória'),
+    .min(6, "Senha precisa ter pelo menos 6 caracteres")
+    .required("Senha é obrigatória"),
   password_confirm: yup
     .string()
-    .required('Confirmação de senha é obrigatória')
-    .oneOf([yup.ref('password'), ''], 'A confirmação da senha nao confere'),
-})
+    .required("Confirmação de senha é obrigatória")
+    .oneOf([yup.ref("password"), ""], "A confirmação da senha nao confere"),
+});
 
 export function SignUp() {
-  const navigation = useNavigation<AuthNavigatorRoutesProps>()
-  const toast = useToast()
+  const navigation = useNavigation<AuthNavigatorRoutesProps>();
+  const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const {signIn} = useAuth()
 
   const {
     control,
@@ -52,25 +56,28 @@ export function SignUp() {
     formState: { errors },
   } = useForm<FormDataProps>({
     resolver: yupResolver(signUpSchema),
-  })
+  });
 
   function handleGoBack() {
-    navigation.goBack()
+    navigation.goBack();
   }
 
   async function handleSignUp({ name, email, password }: FormDataProps) {
     try {
-      const response = await api.post('/users', { name, email, password })
-      console.log(response.data)
+      setIsLoading(true);
+      await api.post("/users", { name, email, password });
+      await signIn(email, password);
+
     } catch (err) {
-      const isAppError = err instanceof AppError
+      setIsLoading(false)
+      const isAppError = err instanceof AppError;
 
       const title = isAppError
         ? err.message
-        : 'Nao foi possivel criar uma conta, tente novamente mais tarde'
+        : "Nao foi possivel criar uma conta, tente novamente mais tarde";
 
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <ToastMessage
             id={id}
@@ -79,7 +86,7 @@ export function SignUp() {
             onClose={() => toast.close(id)}
           />
         ),
-      })
+      });
     }
   }
 
@@ -170,6 +177,7 @@ export function SignUp() {
             <Button
               title="Criar e acessar"
               onPress={handleSubmit(handleSignUp)}
+              isloading={isLoading}
             />
           </Center>
 
@@ -182,5 +190,5 @@ export function SignUp() {
         </VStack>
       </VStack>
     </ScrollView>
-  )
+  );
 }
