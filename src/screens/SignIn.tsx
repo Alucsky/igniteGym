@@ -5,29 +5,37 @@ import {
   Text,
   Heading,
   ScrollView,
-} from '@gluestack-ui/themed'
-import backgroundImg from '@assets/background.png'
-import Logo from '@assets/logo.svg'
-import { Input } from '@components/Input'
-import { Button } from '@components/Button'
-import { useNavigation } from '@react-navigation/native'
-import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
-import { useForm, Controller } from 'react-hook-form'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
+} from "@gluestack-ui/themed";
+import backgroundImg from "@assets/background.png";
+import Logo from "@assets/logo.svg";
+import { Input } from "@components/Input";
+import { Button } from "@components/Button";
+import { useNavigation } from "@react-navigation/native";
+import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
+import { useForm, Controller } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useAuth } from "@hooks/useAuth";
+import { AppError } from "@utils/AppError";
+import { useToast } from "@gluestack-ui/themed";
+import { ToastMessage } from "@components/ToastMessage";
+import { useState } from "react";
 
 type FormDataProps = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
 const signInSchema = yup.object({
-  email: yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
-  password: yup.string().required('Senha é obrigatória'),
-})
+  email: yup.string().email("E-mail inválido").required("E-mail é obrigatório"),
+  password: yup.string().required("Senha é obrigatória"),
+});
 
 export function SignIn() {
-  const navigation = useNavigation<AuthNavigatorRoutesProps>()
+  const navigation = useNavigation<AuthNavigatorRoutesProps>();
+  const { signIn } = useAuth();
+  const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     control,
@@ -35,14 +43,37 @@ export function SignIn() {
     formState: { errors },
   } = useForm<FormDataProps>({
     resolver: yupResolver(signInSchema),
-  })
+  });
 
-  function handleSignIp(data: FormDataProps) {
-    console.log(data)
+  async function handleSignIp({ email, password }: FormDataProps) {
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError
+        ? error.message
+        : `Nao foi possivel realizar o login. Tente novamente mais tarde`;
+
+      setIsLoading(false);
+
+      toast.show({
+        placement: "top",
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            title={title}
+            action="error"
+            onClose={() => toast.close(id)}
+          />
+        ),
+      });
+    }
   }
 
   function handleNewAcount() {
-    navigation.navigate('signUp')
+    navigation.navigate("signUp");
   }
 
   return (
@@ -100,7 +131,11 @@ export function SignIn() {
                 />
               )}
             />
-            <Button title="Acessar" onPress={handleSubmit(handleSignIp)} />
+            <Button
+              title="Acessar"
+              onPress={handleSubmit(handleSignIp)}
+              isloading={isLoading}
+            />
           </Center>
           <Center flex={1} justifyContent="flex-end" mt="$4">
             <Text color="$gray100" fontSize="$sm" mb="$3" fontFamily="$body">
@@ -115,5 +150,5 @@ export function SignIn() {
         </VStack>
       </VStack>
     </ScrollView>
-  )
+  );
 }
